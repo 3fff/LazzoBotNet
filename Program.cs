@@ -22,22 +22,8 @@ namespace LazzoBotNet
                 x.LogHandler = LogHandler;
             });
 
-            client.ChannelCreated += async (s, e) => 
-            {
-                var logChannel = e.Server.GetChannel(254990946536652801);
-                await logChannel.SendMessage($"Lev has created {e.Channel.Name} channels.");
-                Console.WriteLine("A new channel has been created.\n--");
-            };
-
-            client.UserUpdated += async (s, e) =>
-            {
-                var logChannel = e.Server.GetChannel(254990946536652801);
-                if (e.After.VoiceChannel == null) return;
-                if (e.Before.VoiceChannel == e.After.VoiceChannel) return;
-
-                await logChannel.SendMessage($"User {e.After.Name} has joined {e.After.VoiceChannel} channels.");
-                Console.WriteLine("User was moved to another channel.\n--");
-            };
+            client.ChannelCreated += OnChannelCreated;
+            client.UserUpdated += OnUserUpdated;
 
             client.ExecuteAndWait(async () =>
             {
@@ -49,6 +35,25 @@ namespace LazzoBotNet
                 x.PrefixChar = '!';
                 x.HelpMode = HelpMode.Public;
             });
+        }
+
+        private static async void OnChannelCreated(object sender, ChannelEventArgs e)
+        {
+            DateTime time = DateTime.Now;
+            var logChannel = e.Server.GetChannel(254990946536652801);
+            await logChannel.SendMessage($"{time.ToString("h:mm:ss tt")} Lev has created {e.Channel.Name} channels.");
+            Console.WriteLine("A new channel has been created.\n--");
+        }
+
+        private static async void OnUserUpdated(object sender, UserUpdatedEventArgs e)
+        {
+            DateTime time = DateTime.Now;
+            var logChannel = e.Server.GetChannel(254990946536652801);
+            if (e.After.VoiceChannel == null) return;
+            if (e.Before.VoiceChannel == e.After.VoiceChannel) return;
+
+            await logChannel.SendMessage($"{time.ToString("h:mm:ss tt")} User {e.After.Name} has joined {e.After.VoiceChannel} channels.");
+            Console.WriteLine($"User {e.After.Name} was moved to another channel.\n--");
         }
 
         private static void LogHandler(object sender, LogMessageEventArgs x)
